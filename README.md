@@ -1,0 +1,1 @@
+regex:cdns?(.*)\.gigya\.com/(js|JS|gs/webSdk|gs/websdk)(/.*)
