@@ -18,16 +18,21 @@ export default function gigyaProxyMiddleware(proxyHost: string) {
             else if (paths.core.includes(req.path.toLowerCase())) {
                 console.log('serving gigya.js ...');
                 file = await proxy.getCore(req.query['apiKey']);
+                res.contentType('text/javascript');
             }
             else if (paths.api.includes(req.path.toLowerCase())) {
                 console.log('serving api.aspx ...');
                 file = await proxy.getApi(req.query['apiKey']);
+                res.contentType('text/html');
+            }
+            else if (req.path.toLowerCase().startsWith('/js/')) {
+                file = await rp(`${proxyHost}${req.originalUrl}`);
+                res.contentType('text/javascript');
             }
             else {
-                file = await rp(`${proxyHost}${req.originalUrl}`);
+                file = 'not supported';
             }
 
-            res.contentType('text/javascript');
             res.send(file);
         }
         catch (e) {

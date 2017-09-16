@@ -28,10 +28,12 @@ ${body}`;
         <title>proxy magic</title>
         <script>
             ${header}
+             gigya.gmidTicketExpiration = 3600;
+            }
         </script>
     </head>
     <body>
-        <script src="${this.proxyHost}${paths.api[0]}?apiKey=${apiKey}&dbg=1"></script>
+        <script src="${this.proxyHost}/js/gigya.services.api.js?apiKey=${apiKey}&dbg=1"></script>
     </body>
 </html>`;
     }
