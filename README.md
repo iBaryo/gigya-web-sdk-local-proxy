@@ -1,4 +1,8 @@
 # gigya web sdk local proxy
+getting websdk resources from localhost but with server injected data from production!
+
+## installation
+after cloning:
 ```
 npm i
 npm start
