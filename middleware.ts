@@ -2,10 +2,8 @@ import {Request, Response, NextFunction} from "express-serve-static-core";
 import {GigyaProxy} from "./gigya-proxy";
 import {paths} from "./common";
 
-const rp = require('request-promise');
-
-export default function gigyaProxyMiddleware(proxyHost: string) {
-    const proxy = new GigyaProxy(proxyHost);
+export default function gigyaProxyMiddleware(proxyHost: string, proxyApiKey : string) {
+    const proxy = new GigyaProxy(proxyHost, proxyApiKey);
 
     return async(req: Request, res: Response, next: NextFunction) => {
         let file: string;
@@ -26,7 +24,7 @@ export default function gigyaProxyMiddleware(proxyHost: string) {
                 res.contentType('text/html');
             }
             else if (req.path.toLowerCase().startsWith('/js/')) {
-                file = await rp(`${proxyHost}${req.originalUrl}`);
+                file = await proxy.getDefault(req);
                 res.contentType('text/javascript');
             }
             else {
@@ -39,6 +37,7 @@ export default function gigyaProxyMiddleware(proxyHost: string) {
             const errResponse = e.response;
             if (!errResponse) {
                 res.send('proxy error! see details in log.');
+                console.log(`error!`);
                 console.log(JSON.stringify(e, undefined, 4));
             }
             else {
