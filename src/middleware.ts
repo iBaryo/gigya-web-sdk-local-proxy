@@ -15,12 +15,12 @@ export default function gigyaProxyMiddleware(proxyHost: string, proxyApiKey : st
             }
             else if (paths.core.includes(req.path.toLowerCase())) {
                 console.log('serving gigya.js ...');
-                file = await proxy.getCore(req.query['apiKey']);
+                file = await proxy.getCore(getByCaseInsensitive(req.query, 'apiKey'));
                 res.contentType('text/javascript');
             }
             else if (paths.api.includes(req.path.toLowerCase())) {
                 console.log('serving api.aspx ...');
-                file = await proxy.getApi(req.query['apiKey']);
+                file = await proxy.getApi(getByCaseInsensitive(req.query, 'apiKey'));
                 res.contentType('text/html');
             }
             else if (req.path.toLowerCase().startsWith('/js/')) {
@@ -47,4 +47,9 @@ export default function gigyaProxyMiddleware(proxyHost: string, proxyApiKey : st
             }
         }
     };
+}
+
+function getByCaseInsensitive(obj : Object, prop : string) : string|undefined {
+    const activeProp = Object.keys(obj).find(key => key.toLowerCase() == prop.toLowerCase());
+    return activeProp && obj[activeProp];
 }
