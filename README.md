@@ -2,10 +2,8 @@
 getting websdk resources from localhost but with server injected data from production!
 
 ## installation
-after cloning:
 ```
-npm i
-npm start
+npm i -g gigya-web-sdk-local-proxy
 ```
 
 set the following fiddler auto-responder rules:
@@ -18,4 +16,17 @@ and for https:
 ```
 regex:https://cdn(.*)\.gigya\.com/(js|JS|gs/webSdk|gs/websdk)(/.*)
 https://localhost:8081/$2$3
+```
+
+## running
+simply:
+```
+prox
+```
+
+## installation for local dev
+after cloning:
+```
+npm i
+npm start
 ```
