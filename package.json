@@ -2,6 +2,9 @@
   "name": "gigya-web-sdk-local-proxy",
   "version": "0.0.1",
   "main": "dist",
+  "bin": {
+    "prox" : "./run"
+  },
   "scripts": {
     "start": "ts-node main.ts"
   },

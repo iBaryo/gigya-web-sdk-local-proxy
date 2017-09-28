@@ -9,6 +9,16 @@ const httpsPort = 8081;
 
 app.use(gigyaProxyMiddleware('localhost', consoleIlApiKey));
 
+console.log(`don't forget to set the following fiddler auto-responders:
+~~~
+regex:http://cdn(.*)\\.gigya\\.com/(js|JS|gs/webSdk|gs/websdk)(/.*)
+http://localhost:${httpPort}/$2$3
+~~~
+regex:https://cdn(.*)\\.gigya\\.com/(js|JS|gs/webSdk|gs/websdk)(/.*)
+https://localhost:${httpsPort}/$2$3
+~~~
+`);
+
 console.log('listening...');
 app.listen(httpPort);
 https.createServer({
