@@ -1,9 +1,9 @@
 {
   "name": "gigya-web-sdk-local-proxy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist",
   "bin": {
-    "prox" : "./main.js"
+    "prox": "./main.js"
   },
   "scripts": {
     "build": "tsc main.ts --target es2016 --module commonjs",
