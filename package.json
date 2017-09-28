@@ -1,6 +1,6 @@
 {
   "name": "gigya-web-sdk-local-proxy",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "main": "main.js",
   "bin": {
     "prox": "./main.js"
