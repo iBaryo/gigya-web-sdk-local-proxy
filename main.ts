@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import gigyaProxyMiddleware from "./src/middleware";
 const app = require('express')();
 const https = require('https');
