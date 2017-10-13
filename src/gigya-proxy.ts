@@ -16,13 +16,38 @@ export class GigyaProxy {
     public async getCore(apiKey: string) {
         const header = await this.getHeader(apiKey);
         const url = `http://${this.proxyHost}${paths.core[0]}?${dbgQueryParam}&apiKey=${this.proxyApiKey || apiKey}`;
-        console.log(url);
         const proxyScript = await rp(url) as string;
         const body = proxyScript.substr(this.getHeaderEndIndex(proxyScript));
 
         return `// proxy magic
 ${header}
 ${body}`;
+    }
+
+    public async getSso(apiKey : string) {
+        if (!apiKey) {
+            throw 'missing api key';
+        }
+        else {
+            const sso = await rp(`${this.prodHost}/${paths.sso[0]}?apiKey=${apiKey}`) as string;
+            const ssoHeader = sso.substr(
+                sso.indexOf(`//server injected code`),
+                sso.indexOf(`//end server injected code`)
+            );
+
+            return `<!DOCTYPE html>
+<html>
+    <head>
+        <title>proxy magic</title>
+        <script language="javascript">
+            //proxy injected code
+            ${ssoHeader}
+            //end proxy injected code
+        </script>
+        <script src="//${this.proxyHost}/js/gigya.sso.js?${dbgQueryParam}"></script>
+    </head>
+</html>`
+        }
     }
 
     public async getApi(apiKey: string) {

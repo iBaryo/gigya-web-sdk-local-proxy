@@ -9,21 +9,28 @@ export default function gigyaProxyMiddleware(proxyHost: string, proxyApiKey : st
         let file: string;
 
         console.log(`request for ${req.originalUrl}`);
+        const reqPath = req.path.toLowerCase();
+        const apiKey = getByCaseInsensitive(req.query, 'apiKey');
         try {
             if (req.path == '/favicon.ico') {
                 return res.status(404);
             }
-            else if (paths.core.includes(req.path.toLowerCase())) {
+            else if (paths.core.includes(reqPath)) {
                 console.log('serving gigya.js ...');
-                file = await proxy.getCore(getByCaseInsensitive(req.query, 'apiKey'));
+                file = await proxy.getCore(apiKey);
                 res.contentType('text/javascript');
             }
-            else if (paths.api.includes(req.path.toLowerCase())) {
+            else if (paths.api.includes(reqPath)) {
                 console.log('serving api.aspx ...');
-                file = await proxy.getApi(getByCaseInsensitive(req.query, 'apiKey'));
+                file = await proxy.getApi(apiKey);
                 res.contentType('text/html');
             }
-            else if (req.path.toLowerCase().startsWith('/js/')) {
+            else if (paths.sso.includes(reqPath)) {
+                console.log('serving sso.htm ...');
+                file = await proxy.getSso(apiKey);
+                res.contentType('text/html');
+            }
+            else if (reqPath.startsWith('/js/')) {
                 file = await proxy.getDefault(req);
                 res.contentType('text/javascript');
             }
