@@ -30,9 +30,11 @@ ${body}`;
         }
         else {
             const sso = await rp(`${this.prodHost}/${paths.sso[0]}?apiKey=${apiKey}`) as string;
+            const ssoStartToken = `//server injected code`;
+            const startIndex = sso.indexOf(ssoStartToken) + ssoStartToken.length;
             const ssoHeader = sso.substr(
-                sso.indexOf(`//server injected code`),
-                sso.indexOf(`//end server injected code`)
+                startIndex,
+                sso.indexOf(`//end server injected code`) - startIndex
             );
 
             return `<!DOCTYPE html>
@@ -44,7 +46,7 @@ ${body}`;
             ${ssoHeader}
             //end proxy injected code
         </script>
-        <script src="//${this.proxyHost}/js/gigya.sso.js?${dbgQueryParam}"></script>
+        <script src="//${this.proxyHost}/websdk/latest/gigya.sso.js?${dbgQueryParam}"></script>
     </head>
 </html>`
         }
@@ -63,7 +65,7 @@ ${body}`;
         </script>
     </head>
     <body>
-        <script src="//${this.proxyHost}/js/gigya.services.api.js?${dbgQueryParam}"></script>
+        <script src="//${this.proxyHost}/websdk/latest/gigya.services.api.js?${dbgQueryParam}"></script>
     </body>
 </html>`;
     }
