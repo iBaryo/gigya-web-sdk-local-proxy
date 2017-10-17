@@ -8,13 +8,13 @@ npm i -g gigya-web-sdk-local-proxy
 
 set the following fiddler auto-responder rules:
 ```
-regex:http://cdn(.*)\.gigya\.com/(js|JS|gs/webSdk|gs/websdk)(/.*)
+regex:http://cdn(.*)\.gigya\.com/(js|JS|gs/web[Ss]dk|gs/sso.htm)(.*)
 http://localhost:8080/$2$3
 ```
 
 and for https:
 ```
-regex:https://cdn(.*)\.gigya\.com/(js|JS|gs/webSdk|gs/websdk)(/.*)
+regex:https://cdn(.*)\.gigya\.com/(js|JS|gs/web[Ss]dk|gs/sso.htm)(.*)
 https://localhost:8081/$2$3
 ```
 
