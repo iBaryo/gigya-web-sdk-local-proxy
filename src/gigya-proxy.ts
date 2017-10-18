@@ -10,21 +10,50 @@ export class GigyaProxy {
         [apiKey: string]: string
     } = {};
 
-    constructor(public proxyHost: string, public proxyApiKey? : string, public prodHost = 'http://cdn.gigya.com') {
+    constructor(public proxyHost: string, public proxyApiKey?: string, public prodHost = 'http://cdn.gigya.com') {
     }
 
     public async getCore(apiKey: string) {
         const header = await this.getHeader(apiKey);
         const url = `http://${this.proxyHost}${paths.core[0]}?${dbgQueryParam}&apiKey=${this.proxyApiKey || apiKey}`;
         const proxyScript = await rp(url) as string;
-        const body = proxyScript.substr(this.getHeaderEndIndex(proxyScript));
+        let body: string;
+
+        let dynamicLoad = false;
+
+        if (dynamicLoad) {
+            body = proxyScript.substr(this.getHeaderEndIndex(proxyScript));
+        }
+        else {
+            body = `
+            (function() {
+                var head = document.head || document.querySelector('head');
+                function loadScript(src, cb) {
+                    var script = document.createElement('script');
+                    script.src = src;
+                    script.async = false;
+                    script.onload = cb;
+                    head.appendChild(script);
+                }
+                
+                loadScript('//localhost/webSdk/latest/ApiAdapters/gigya.adapters.web.js', function() {
+                    loadScript('//localhost/webSdk/latest/ApiAdapters/gigya.adapters.mobile.js', function() {
+                        loadScript('//localhost/webSdk/latest/gigya.js', function() {
+                            console.log('gig: core loaded');
+                        });
+                    });
+                });
+            })();
+        } // closing for an 'if' in the header
+`;
+        }
 
         return `// proxy magic
 ${header}
 ${body}`;
     }
 
-    public async getSso(apiKey : string) {
+    public async getSso(apiKey: string) {
         if (!apiKey) {
             throw 'missing api key';
         }
@@ -94,7 +123,7 @@ ${body}`;
         }
     }
 
-    public getDefault(req : Request) : Promise<string> {
+    public getDefault(req: Request): Promise<string> {
         const connector = Object.keys(req.query).length ? '&' : '?';
         return rp(`http://${this.proxyHost}${req.originalUrl}${connector}${dbgQueryParam}`);
     }
