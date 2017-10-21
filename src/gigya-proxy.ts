@@ -10,21 +10,38 @@ export class GigyaProxy {
         [apiKey: string]: string
     } = {};
 
-    constructor(public proxyHost: string, public proxyApiKey? : string, public prodHost = 'http://cdn.gigya.com') {
+    constructor(protected dynScripts : boolean, public proxyHost: string, public proxyApiKey: string, public prodHost = 'http://cdn.gigya.com') {
     }
 
     public async getCore(apiKey: string) {
         const header = await this.getHeader(apiKey);
         const url = `http://${this.proxyHost}${paths.core[0]}?${dbgQueryParam}&apiKey=${this.proxyApiKey || apiKey}`;
         const proxyScript = await rp(url) as string;
-        const body = proxyScript.substr(this.getHeaderEndIndex(proxyScript));
+        let body: string;
+
+        if (this.dynScripts) {
+            body = proxyScript.substr(this.getHeaderEndIndex(proxyScript));
+        }
+        else {
+            body = `
+            (() => {
+                // to immediately load these scripts - order matters
+                document.write(\`
+                <script src="//localhost/webSdk/latest/ApiAdapters/gigya.adapters.web.js"></script>
+                <script src="//localhost/webSdk/latest/ApiAdapters/gigya.adapters.mobile.js"></script>
+                <script src="//localhost/webSdk/latest/gigya.js"></script>
+                \`);
+            })();
+        } // closing for an 'if' in the header
+`;
+        }
 
         return `// proxy magic
 ${header}
 ${body}`;
     }
 
-    public async getSso(apiKey : string) {
+    public async getSso(apiKey: string) {
         if (!apiKey) {
             throw 'missing api key';
         }
@@ -94,8 +111,73 @@ ${body}`;
         }
     }
 
-    public getDefault(req : Request) : Promise<string> {
+    public getDefault(req: Request): Promise<string> {
         const connector = Object.keys(req.query).length ? '&' : '?';
         return rp(`http://${this.proxyHost}${req.originalUrl}${connector}${dbgQueryParam}`);
+    }
+
+    public getPlugin(req:Request) : Promise<string> {
+        if (!this.dynScripts) {
+            return this.getDefault(req);
+        }
+        else {
+            let includeBasePlugin = false;
+            let plugin = req.path.toLowerCase().substr('/js/'.length);
+
+            if (plugin.includes('.plugins.base')) {
+                includeBasePlugin = true;
+                plugin = req.query.services as string;
+            }
+
+            if (plugin.endsWith('.js')) {
+                plugin = plugin.substr(0, plugin.lastIndexOf('.js'));
+            }
+
+            return this.getPluginScript(plugin, req.query.lang, includeBasePlugin);
+        }
+    }
+
+    public async getPluginScript(pluginName : string, lang = 'en', includeBasePlugin = false) {
+        const translations = await this.getTranslations(pluginName, lang);
+        return `
+        (() => {
+            function loadScript(name) {
+                return new gigya.Promise(resolve => {
+                    const script = document.createElement('script');
+                    script.src = \`//localhost/webSdk/latest/\${name}\`;
+                    script.async = false;
+                    script.onload = resolve;
+                    document.body.appendChild(script);
+                });
+            }
+            
+            const srcScript = document.querySelector("script[src*='${pluginName}']");
+            const done = srcScript.onload;
+            srcScript.onload = () => {};
+            
+            const loadBasePlugin = ${includeBasePlugin} ? 
+                    loadScript('gigya.services.plugins.base.js')
+                    : gigya.Promise.resolve(); 
+            
+            loadBasePlugin
+            // .then(() => new gigya.Promise(resolve => gigya._.UI.registerPlugin(resolve)))
+            .then(()=> {
+                ${translations}            
+            })
+            .then(() => loadScript('${pluginName}.js'))
+            .then(done);
+        })();
+`;
+    }
+
+    private async getTranslations(plugin : string, lang : string) {
+        const pluginRes = await rp(`http://${this.proxyHost}/js/${plugin}?lang=${lang}`) as string;
+
+        const transStartToken = '// Injected language object';
+        const transEndToken = '// End injected language object';
+        return pluginRes.substr(
+            pluginRes.indexOf(transStartToken),
+            pluginRes.indexOf(transEndToken) + transEndToken.length
+        );
     }
 }
