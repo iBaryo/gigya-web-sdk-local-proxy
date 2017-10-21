@@ -30,6 +30,22 @@ export default function gigyaProxyMiddleware(proxyHost: string, proxyApiKey : st
                 file = await proxy.getSso(apiKey);
                 res.contentType('text/html');
             }
+            else if (reqPath.includes('.plugins.')) {
+                let includeBasePlugin = false;
+                let plugin = reqPath.substr('/js/'.length);
+
+                if (plugin.includes('.plugins.base')) {
+                    includeBasePlugin = true;
+                    plugin = req.query.services as string;
+                }
+
+                if (plugin.endsWith('.js')) {
+                    plugin = plugin.substr(0, plugin.lastIndexOf('.js'));
+                }
+
+                file = await proxy.getPlugin(plugin, req.query.lang, includeBasePlugin);
+                res.contentType('text/javascript');
+            }
             else if (reqPath.startsWith('/js/')) {
                 file = await proxy.getDefault(req);
                 res.contentType('text/javascript');
