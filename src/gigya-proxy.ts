@@ -10,7 +10,7 @@ export class GigyaProxy {
         [apiKey: string]: string
     } = {};
 
-    constructor(public proxyHost: string, public proxyApiKey?: string, public prodHost = 'http://cdn.gigya.com') {
+    constructor(protected dynScripts : boolean, public proxyHost: string, public proxyApiKey: string, public prodHost = 'http://cdn.gigya.com') {
     }
 
     public async getCore(apiKey: string) {
@@ -19,9 +19,7 @@ export class GigyaProxy {
         const proxyScript = await rp(url) as string;
         let body: string;
 
-        let dynamicLoad = false;
-
-        if (dynamicLoad) {
+        if (this.dynScripts) {
             body = proxyScript.substr(this.getHeaderEndIndex(proxyScript));
         }
         else {
@@ -118,7 +116,28 @@ ${body}`;
         return rp(`http://${this.proxyHost}${req.originalUrl}${connector}${dbgQueryParam}`);
     }
 
-    public async getPlugin(pluginName : string, lang = 'en', includeBasePlugin = false) {
+    public getPlugin(req:Request) : Promise<string> {
+        if (!this.dynScripts) {
+            return this.getDefault(req);
+        }
+        else {
+            let includeBasePlugin = false;
+            let plugin = req.path.toLowerCase().substr('/js/'.length);
+
+            if (plugin.includes('.plugins.base')) {
+                includeBasePlugin = true;
+                plugin = req.query.services as string;
+            }
+
+            if (plugin.endsWith('.js')) {
+                plugin = plugin.substr(0, plugin.lastIndexOf('.js'));
+            }
+
+            return this.getPluginScript(plugin, req.query.lang, includeBasePlugin);
+        }
+    }
+
+    public async getPluginScript(pluginName : string, lang = 'en', includeBasePlugin = false) {
         const translations = await this.getTranslations(pluginName, lang);
         return `
         (() => {

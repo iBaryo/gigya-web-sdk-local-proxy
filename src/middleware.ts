@@ -2,8 +2,8 @@ import {Request, Response, NextFunction} from "express-serve-static-core";
 import {GigyaProxy} from "./gigya-proxy";
 import {paths} from "./common";
 
-export default function gigyaProxyMiddleware(proxyHost: string, proxyApiKey : string) {
-    const proxy = new GigyaProxy(proxyHost, proxyApiKey);
+export default function gigyaProxyMiddleware(dynScripts : boolean, proxyHost: string, proxyApiKey : string, prodHost? : string) {
+    const proxy = new GigyaProxy(dynScripts, proxyHost, proxyApiKey, prodHost);
 
     return async(req: Request, res: Response, next: NextFunction) => {
         let file: string;
@@ -31,19 +31,7 @@ export default function gigyaProxyMiddleware(proxyHost: string, proxyApiKey : st
                 res.contentType('text/html');
             }
             else if (reqPath.includes('.plugins.')) {
-                let includeBasePlugin = false;
-                let plugin = reqPath.substr('/js/'.length);
-
-                if (plugin.includes('.plugins.base')) {
-                    includeBasePlugin = true;
-                    plugin = req.query.services as string;
-                }
-
-                if (plugin.endsWith('.js')) {
-                    plugin = plugin.substr(0, plugin.lastIndexOf('.js'));
-                }
-
-                file = await proxy.getPlugin(plugin, req.query.lang, includeBasePlugin);
+                file = await proxy.getPlugin(req);
                 res.contentType('text/javascript');
             }
             else if (reqPath.startsWith('/js/')) {
