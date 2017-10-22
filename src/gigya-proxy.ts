@@ -19,7 +19,7 @@ export class GigyaProxy {
         const proxyScript = await rp(url) as string;
         let body: string;
 
-        if (this.dynScripts) {
+        if (!this.dynScripts) {
             body = proxyScript.substr(this.getHeaderEndIndex(proxyScript));
         }
         else {
