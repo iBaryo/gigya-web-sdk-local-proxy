@@ -10,17 +10,11 @@ const consoleIlApiKey = '3_HkXvtGOzd1QMcVfHye7gcamXbLAoC77C4TCB7gk8mych-xEm5HTL0
 const httpPort = 8080;
 const httpsPort = 8081;
 
-const args = process.argv.slice(2).reduce((res : {__p? : string}, curr : string) => {
-    if (curr.indexOf('-') == 0) {
-        res[curr] = null;
-        res.__p = curr;
-    }
-    else if (res.__p) {
-        res[res.__p] = curr;
-    }
-
-    return res;
-}, {});
+const args = getArgs() as {
+    x: boolean,  // extended mode
+    e: string,   // environment for injected
+    o: string   // sources origin
+};
 
 console.log(`don't forget to set the following fiddler auto-responders:
 ~~~
@@ -32,13 +26,25 @@ https://localhost:${httpsPort}/$2$3
 ~~~
 `);
 
-const extMode = args.hasOwnProperty('-x');
-
-if (extMode) {
+if (args.x) {
     console.log(`experimental source maps support -- ON! (requires local websdk ^7.4.20)`);
 }
 
-app.use(gigyaProxyMiddleware(extMode, 'localhost', consoleIlApiKey));
+const env = args.e || 'us1';
+
+let origin : string;
+if (!args.o) {
+    origin = 'localhost';
+}
+else if (args.o.startsWith('http')) {
+    origin = args.o;
+}
+else {
+    origin = `http://cdn.${args.o}.gigya.com`;
+}
+
+console.log(`getting injected data from ${env} and sources from ${origin}`);
+app.use(gigyaProxyMiddleware(args.x, origin, consoleIlApiKey, `http://cdn.${env}.gigya.com`));
 
 
 console.log('listening...');
@@ -48,3 +54,35 @@ https.createServer({
     key: fs.readFileSync(path.join(__dirname,'cert/key.pem')),
     passphrase: 'Gigya123'
 }, app).listen(httpsPort);
+
+
+
+function getArgs() {
+    const endToken = '__end';
+    const args = process.argv.slice(2).concat([endToken]).reduce((res, curr) => {
+        if (curr.startsWith('-') || curr == endToken) {
+            if (res.__p) {
+                res[res.__p] = true;
+            }
+
+            res.__p = curr.substr(1);
+        }
+        else if (res.__p) {
+            res[res.__p] = curr;
+            delete res.__p;
+        }
+        else {
+            res[res.__c++] = curr;
+        }
+        return res;
+
+    }, {
+        __p: null,
+        __c: 0
+    });
+
+    delete args.__p;
+    delete args.__c;
+
+    return args as Object;
+}

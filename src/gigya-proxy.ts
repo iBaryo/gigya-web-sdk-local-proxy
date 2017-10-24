@@ -10,7 +10,7 @@ export class GigyaProxy {
         [apiKey: string]: string
     } = {};
 
-    constructor(protected dynScripts : boolean, public proxyHost: string, public proxyApiKey: string, public prodHost = 'http://cdn.gigya.com') {
+    constructor(protected dynScripts : boolean, public proxyHost: string, public proxyApiKey: string, public prodHost) {
     }
 
     public async getCore(apiKey: string) {
@@ -46,7 +46,7 @@ ${body}`;
             throw 'missing api key';
         }
         else {
-            const sso = await rp(`${this.prodHost}/${paths.sso[0]}?apiKey=${apiKey}`) as string;
+            const sso = await rp(`${this.prodHost}${paths.sso[0]}?apiKey=${apiKey}`) as string;
             const ssoStartToken = `//server injected code`;
             const startIndex = sso.indexOf(ssoStartToken) + ssoStartToken.length;
             const ssoHeader = sso.substr(
@@ -92,7 +92,7 @@ ${body}`;
             throw 'missing api key';
         }
         else if (!this._siteInjectedHeaders[apiKey]) {
-            const core = await rp(`${this.prodHost}/${paths.core[0]}?apiKey=${apiKey}`) as string;
+            const core = await rp(`${this.prodHost}${paths.core[0]}?apiKey=${apiKey}`) as string;
             const headerEndIndex = this.getHeaderEndIndex(core);
             this._siteInjectedHeaders[apiKey] = core.substr(0, headerEndIndex);
         }

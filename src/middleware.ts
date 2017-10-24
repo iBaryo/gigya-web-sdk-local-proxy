@@ -2,8 +2,8 @@ import {Request, Response, NextFunction} from "express-serve-static-core";
 import {GigyaProxy} from "./gigya-proxy";
 import {paths} from "./common";
 
-export default function gigyaProxyMiddleware(dynScripts : boolean, proxyHost: string, proxyApiKey : string, prodHost? : string) {
-    const proxy = new GigyaProxy(dynScripts, proxyHost, proxyApiKey, prodHost);
+export default function gigyaProxyMiddleware(dynScripts : boolean, proxyHost: string, proxyApiKey : string, targetHost : string) {
+    const proxy = new GigyaProxy(dynScripts, proxyHost, proxyApiKey, targetHost);
 
     return async(req: Request, res: Response, next: NextFunction) => {
         let file: string;
@@ -52,6 +52,7 @@ export default function gigyaProxyMiddleware(dynScripts : boolean, proxyHost: st
                 console.log(JSON.stringify(e, undefined, 4));
             }
             else {
+                console.log(e);
                 res.status(errResponse.statusCode);
                 Object.keys(errResponse.headers).forEach(header => res.setHeader(header, errResponse.headers[header]));
                 res.send(errResponse.body);
