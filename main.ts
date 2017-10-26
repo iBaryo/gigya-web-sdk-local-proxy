@@ -43,7 +43,7 @@ else {
     origin = `http://cdn.${args.o}.gigya.com`;
 }
 
-console.log(`getting injected data from ${env} and sources from ${origin}`);
+console.log(`injected data: ${env}\nsources: ${origin}`);
 app.use(gigyaProxyMiddleware(args.x, origin, consoleIlApiKey, `http://cdn.${env}.gigya.com`));
 
 
