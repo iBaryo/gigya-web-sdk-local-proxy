@@ -21,7 +21,7 @@ console.log(`don't forget to set the following fiddler auto-responders:
 regex:http://cdn(.*)\\.gigya\\.com/(js|JS|gs/web[Ss]dk|gs/sso.htm)(.*)
 http://localhost:${httpPort}/$2$3
 ~~~
-regex:https://cdn(.*)\\.gigya\\.com/com/(js|JS|gs/web[Ss]dk|gs/sso.htm)(.*)
+regex:https://cdn(.*)\\.gigya\\.com/(js|JS|gs/web[Ss]dk|gs/sso.htm)(.*)
 https://localhost:${httpsPort}/$2$3
 ~~~
 `);

@@ -11,6 +11,8 @@ export default function gigyaProxyMiddleware(dynScripts : boolean, proxyHost: st
         console.log(`request for ${req.originalUrl}`);
         const reqPath = req.path.toLowerCase();
         const apiKey = getByCaseInsensitive(req.query, 'apiKey');
+        res.header('X-Server', 'prox');
+
         try {
             if (req.path == '/favicon.ico') {
                 return res.status(404);
